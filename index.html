@@ -64,6 +64,9 @@
   .reporte:last-child{border-bottom:0}
   .reporte .meta{font-family:var(--mono);font-size:.72rem;color:var(--gris);margin-bottom:3px}
   .reporte .metodo{display:inline-block;font-weight:600;color:var(--ambar);margin-right:6px}
+  .btn-borrar{margin-top:12px;padding:7px 12px;border:1.5px solid var(--rojo);border-radius:7px;background:transparent;color:var(--rojo);font-family:var(--texto);font-weight:600;font-size:.78rem;cursor:pointer}
+  .btn-borrar:hover{background:var(--rojo);color:#fff}
+  .btn-borrar:focus-visible{outline:3px solid var(--rojo);outline-offset:2px}
 
   /* Formulario */
   form{background:var(--superficie);border:2px solid var(--tinta);border-radius:14px;padding:24px;max-width:560px;box-shadow:4px 4px 0 rgba(19,26,34,.12)}
@@ -190,14 +193,35 @@ async function buscar() {
         `<span class="metodo">${esc(rep.metodo)}</span>${rep.descripcion ? esc(rep.descripcion) : "<i>Sin descripción</i>"}</div>`
       ).join("");
       return `<article class="ficha"><div class="ficha-cab"><span class="num">${esc(fmtNum(r.numero))}</span>${sello}</div>` +
-             `<details><summary>Ver ${n === 1 ? "el reporte" : "los " + n + " reportes"}</summary>${detalles}</details></article>`;
+             `<details><summary>Ver ${n === 1 ? "el reporte" : "los " + n + " reportes"}</summary>${detalles}` +
+             `<button type="button" class="btn-borrar" data-numero="${esc(r.numero)}">Eliminar número (requiere clave maestra)</button></details></article>`;
     }).join("");
+    document.querySelectorAll(".btn-borrar").forEach((b) => b.addEventListener("click", () => borrarNumero(b.dataset.numero)));
   } catch (e) {
     $("#estado").textContent = "No se pudo consultar el registro: " + e.message;
   }
 }
 $("#btn-buscar").addEventListener("click", buscar);
 $("#q").addEventListener("keydown", (e) => { if (e.key === "Enter") buscar(); });
+
+/* BORRAR (con clave maestra) */
+async function borrarNumero(numero) {
+  const clave = prompt("Para eliminar el número " + numero + " introduce la clave maestra:");
+  if (clave === null) return; // canceló
+  try {
+    const res = await fetch(API, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ numero, clave }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "No se pudo eliminar");
+    alert("Número eliminado del registro.");
+    buscar();
+  } catch (e) {
+    alert(e.message);
+  }
+}
 
 /* AGREGAR */
 $("#form-reporte").addEventListener("submit", async (e) => {

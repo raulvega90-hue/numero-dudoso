@@ -85,6 +85,31 @@ export default async (req) => {
     });
   }
 
+  // ---------- BORRAR (requiere clave maestra) ----------
+  if (req.method === "DELETE") {
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return json({ error: "Cuerpo JSON inválido" }, 400);
+    }
+
+    const clave = String(body.clave || "");
+    const CLAVE_MAESTRA = process.env.CLAVE_MAESTRA || "PokitoPajaro";
+    if (clave !== CLAVE_MAESTRA)
+      return json({ error: "Clave maestra incorrecta" }, 401);
+
+    const numero = normalizar(body.numero);
+    const lista = await leerLista(store);
+    const indice = lista.findIndex((r) => r.numero === numero);
+    if (indice === -1)
+      return json({ error: "El número no existe en el registro" }, 404);
+
+    lista.splice(indice, 1);
+    await store.setJSON(KEY, lista);
+    return json({ ok: true, eliminado: numero });
+  }
+
   return json({ error: "Método no permitido" }, 405);
 };
 
