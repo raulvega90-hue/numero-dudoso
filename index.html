@@ -109,7 +109,7 @@
     <div class="buscador">
       <label for="q">Buscar número (completo o parcial)</label>
       <div class="campo-numero">
-        <input id="q" inputmode="tel" placeholder="Ej. 5512345678" autocomplete="off" />
+        <input id="q" inputmode="tel" placeholder="Ej. (212) 555-0134" autocomplete="off" />
         <button id="btn-buscar" type="button">Buscar</button>
       </div>
       <p class="nota">Deja el campo vacío y presiona Buscar para ver todos los números registrados.</p>
@@ -123,7 +123,7 @@
     <form id="form-reporte" novalidate>
       <div class="grupo">
         <label for="f-numero">Número telefónico <b>*</b></label>
-        <input id="f-numero" name="numero" inputmode="tel" required placeholder="Ej. 5512345678" />
+        <input id="f-numero" name="numero" inputmode="tel" required placeholder="Ej. (212) 555-0134" />
       </div>
       <div class="grupo">
         <label for="f-agregadoPor">Agregado por <b>*</b></label>
@@ -162,7 +162,12 @@ document.querySelectorAll("nav [role=tab]").forEach((btn) => {
 /* Utilidades */
 const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtFecha = (iso) => new Date(iso).toLocaleString("es", { dateStyle: "medium", timeStyle: "short" });
-const fmtNum = (n) => n.replace(/(\d{2})(?=(\d{4})+$)/g, "$1 ").trim() || n;
+const fmtNum = (n) => {
+  const d = n.replace(/\D/g, "");
+  if (d.length === 10) return "(" + d.slice(0,3) + ") " + d.slice(3,6) + "-" + d.slice(6);
+  if (d.length === 11 && d[0] === "1") return "+1 (" + d.slice(1,4) + ") " + d.slice(4,7) + "-" + d.slice(7);
+  return n;
+};
 
 /* CONSULTA */
 async function buscar() {
