@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Registro de Números Dudosos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --fondo:#EEF1F4; --tinta:#131A22; --gris:#5B6672;
+    --superficie:#FFFFFF; --linea:#D5DBE2;
+    --ambar:#B45309; --ambar-suave:#FDF3E3;
+    --rojo:#A32C1C; --rojo-suave:#FBEAE6;
+    --verde:#1F6E4E; --verde-suave:#E8F3EE;
+    --mono:'IBM Plex Mono',monospace; --disp:'Archivo',sans-serif; --texto:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--fondo);color:var(--tinta);font-family:var(--texto);line-height:1.55;min-height:100vh}
+  a{color:inherit}
+  .contenedor{max-width:860px;margin:0 auto;padding:0 20px}
+
+  /* Membrete */
+  header{border-bottom:3px solid var(--tinta);background:var(--superficie)}
+  .membrete{display:flex;justify-content:space-between;align-items:baseline;padding:18px 0 14px;gap:12px;flex-wrap:wrap}
+  .marca{font-family:var(--disp);font-weight:900;font-size:clamp(1.15rem,3.5vw,1.5rem);letter-spacing:-.01em;text-transform:uppercase}
+  .marca span{color:var(--ambar)}
+  .lema{font-family:var(--mono);font-size:.72rem;color:var(--gris);letter-spacing:.08em;text-transform:uppercase}
+
+  /* Pestañas */
+  nav{display:flex;gap:0;margin-top:28px;border:1.5px solid var(--tinta);border-radius:10px;overflow:hidden;width:fit-content}
+  nav button{font-family:var(--disp);font-weight:700;font-size:.9rem;padding:10px 22px;border:0;background:var(--superficie);color:var(--tinta);cursor:pointer;text-transform:uppercase;letter-spacing:.04em}
+  nav button[aria-selected="true"]{background:var(--tinta);color:#fff}
+  nav button:focus-visible{outline:3px solid var(--ambar);outline-offset:-3px}
+
+  section{padding:26px 0 60px}
+  .oculto{display:none}
+
+  /* Buscador — firma visual */
+  .buscador{margin-top:6px}
+  .buscador label{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);margin-bottom:8px}
+  .campo-numero{display:flex;background:var(--superficie);border:2px solid var(--tinta);border-radius:14px;overflow:hidden;box-shadow:4px 4px 0 rgba(19,26,34,.12)}
+  .campo-numero input{flex:1;border:0;padding:16px 18px;font-family:var(--mono);font-weight:700;font-size:clamp(1.3rem,4.5vw,2rem);letter-spacing:.06em;color:var(--tinta);min-width:0;background:transparent}
+  .campo-numero input::placeholder{color:#B8C0C9;font-weight:500}
+  .campo-numero input:focus{outline:none}
+  .campo-numero:focus-within{border-color:var(--ambar)}
+  .campo-numero button{border:0;background:var(--tinta);color:#fff;font-family:var(--disp);font-weight:700;padding:0 26px;font-size:1rem;cursor:pointer;text-transform:uppercase}
+  .campo-numero button:hover{background:var(--ambar)}
+  .campo-numero button:focus-visible{outline:3px solid var(--ambar);outline-offset:-3px}
+  .nota{font-size:.82rem;color:var(--gris);margin-top:10px}
+
+  /* Resultados */
+  #estado{margin:26px 0 12px;font-family:var(--mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gris)}
+  .ficha{background:var(--superficie);border:1.5px solid var(--linea);border-radius:12px;padding:18px 20px;margin-bottom:14px}
+  .ficha-cab{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .num{font-family:var(--mono);font-weight:700;font-size:clamp(1.1rem,3.5vw,1.45rem);letter-spacing:.05em}
+  .sello{font-family:var(--disp);font-weight:900;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:6px;border:2px solid currentColor;transform:rotate(-2deg)}
+  .sello.reportado{color:var(--ambar);background:var(--ambar-suave)}
+  .sello.alto{color:var(--rojo);background:var(--rojo-suave)}
+  .sello.limpio{color:var(--verde);background:var(--verde-suave);transform:none}
+  .ficha details{margin-top:12px;border-top:1px dashed var(--linea);padding-top:10px}
+  .ficha summary{cursor:pointer;font-size:.85rem;font-weight:600;color:var(--gris)}
+  .reporte{padding:10px 0;border-bottom:1px dashed var(--linea);font-size:.9rem}
+  .reporte:last-child{border-bottom:0}
+  .reporte .meta{font-family:var(--mono);font-size:.72rem;color:var(--gris);margin-bottom:3px}
+  .reporte .metodo{display:inline-block;font-weight:600;color:var(--ambar);margin-right:6px}
+
+  /* Formulario */
+  form{background:var(--superficie);border:2px solid var(--tinta);border-radius:14px;padding:24px;max-width:560px;box-shadow:4px 4px 0 rgba(19,26,34,.12)}
+  .grupo{margin-bottom:16px}
+  .grupo label{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);margin-bottom:6px}
+  .grupo label b{color:var(--rojo)}
+  .grupo input,.grupo select,.grupo textarea{width:100%;padding:11px 12px;border:1.5px solid var(--linea);border-radius:8px;font-family:var(--texto);font-size:.95rem;background:#FAFBFC}
+  .grupo input:focus,.grupo select:focus,.grupo textarea:focus{outline:none;border-color:var(--ambar);background:#fff}
+  .grupo input[name="numero"]{font-family:var(--mono);font-weight:700;letter-spacing:.05em}
+  form button[type="submit"]{width:100%;padding:13px;border:0;border-radius:8px;background:var(--tinta);color:#fff;font-family:var(--disp);font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer}
+  form button[type="submit"]:hover{background:var(--ambar)}
+  form button:focus-visible{outline:3px solid var(--ambar);outline-offset:2px}
+  #aviso{margin-top:14px;padding:12px 14px;border-radius:8px;font-size:.9rem;display:none}
+  #aviso.ok{display:block;background:var(--verde-suave);color:var(--verde);border:1.5px solid var(--verde)}
+  #aviso.error{display:block;background:var(--rojo-suave);color:var(--rojo);border:1.5px solid var(--rojo)}
+
+  footer{border-top:1.5px solid var(--linea);padding:18px 0 34px;font-size:.78rem;color:var(--gris)}
+  @media (prefers-reduced-motion:no-preference){
+    .ficha{animation:aparecer .25s ease both}
+    @keyframes aparecer{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="contenedor membrete">
+    <div class="marca">Registro de números <span>dudosos</span></div>
+    <div class="lema">Consulta abierta · Reporte comunitario</div>
+  </div>
+</header>
+
+<main class="contenedor">
+  <nav role="tablist" aria-label="Secciones">
+    <button role="tab" aria-selected="true" data-tab="consultar">Consultar</button>
+    <button role="tab" aria-selected="false" data-tab="reportar">Agregar número</button>
+  </nav>
+
+  <!-- CONSULTAR -->
+  <section id="consultar" role="tabpanel">
+    <div class="buscador">
+      <label for="q">Buscar número (completo o parcial)</label>
+      <div class="campo-numero">
+        <input id="q" inputmode="tel" placeholder="Ej. 5512345678" autocomplete="off" />
+        <button id="btn-buscar" type="button">Buscar</button>
+      </div>
+      <p class="nota">Deja el campo vacío y presiona Buscar para ver todos los números registrados.</p>
+    </div>
+    <p id="estado"></p>
+    <div id="resultados"></div>
+  </section>
+
+  <!-- REPORTAR -->
+  <section id="reportar" role="tabpanel" class="oculto">
+    <form id="form-reporte" novalidate>
+      <div class="grupo">
+        <label for="f-numero">Número telefónico <b>*</b></label>
+        <input id="f-numero" name="numero" inputmode="tel" required placeholder="Ej. 5512345678" />
+      </div>
+      <div class="grupo">
+        <label for="f-agregadoPor">Agregado por <b>*</b></label>
+        <input id="f-agregadoPor" name="agregadoPor" required maxlength="60" placeholder="Tu nombre o alias" />
+      </div>
+      <div class="grupo">
+        <label for="f-metodo">Método utilizado (si está disponible)</label>
+        <input id="f-metodo" name="metodo" maxlength="60" placeholder="Ej. Llamada de estafa, WhatsApp fraudulento, extorsión…" />
+      </div>
+      <div class="grupo">
+        <label for="f-descripcion">Descripción de lo ocurrido</label>
+        <textarea id="f-descripcion" name="descripcion" rows="4" maxlength="600" placeholder="Qué dijeron, qué pedían, a qué hora llamaron…"></textarea>
+      </div>
+      <button type="submit">Agregar al registro</button>
+      <p id="aviso" role="status"></p>
+    </form>
+  </section>
+</main>
+
+<footer>
+  <div class="contenedor">Registro alimentado por la comunidad. Los reportes reflejan experiencias de usuarios y no constituyen una acusación verificada.</div>
+</footer>
+
+<script>
+const API = "/api/numeros";
+const $ = (s) => document.querySelector(s);
+
+/* Pestañas */
+document.querySelectorAll("nav [role=tab]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("nav [role=tab]").forEach((b) => b.setAttribute("aria-selected", b === btn));
+    document.querySelectorAll("section[role=tabpanel]").forEach((s) => s.classList.toggle("oculto", s.id !== btn.dataset.tab));
+  });
+});
+
+/* Utilidades */
+const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtFecha = (iso) => new Date(iso).toLocaleString("es", { dateStyle: "medium", timeStyle: "short" });
+const fmtNum = (n) => n.replace(/(\d{2})(?=(\d{4})+$)/g, "$1 ").trim() || n;
+
+/* CONSULTA */
+async function buscar() {
+  const q = $("#q").value.trim();
+  $("#estado").textContent = "Buscando…";
+  $("#resultados").innerHTML = "";
+  try {
+    const res = await fetch(API + (q ? "?q=" + encodeURIComponent(q) : ""));
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Error de consulta");
+
+    if (data.total === 0) {
+      $("#estado").textContent = q ? "0 coincidencias" : "El registro está vacío";
+      if (q) $("#resultados").innerHTML =
+        `<div class="ficha"><div class="ficha-cab"><span class="num">${esc(q)}</span>` +
+        `<span class="sello limpio">Sin reportes</span></div>` +
+        `<p class="nota">Este número no aparece en el registro. Si tuviste una mala experiencia con él, puedes agregarlo.</p></div>`;
+      return;
+    }
+
+    $("#estado").textContent = data.total + (data.total === 1 ? " número registrado" : " números registrados");
+    $("#resultados").innerHTML = data.resultados.map((r) => {
+      const n = r.reportes.length;
+      const sello = n >= 3 ? '<span class="sello alto">Alto riesgo · ' + n + ' reportes</span>'
+                          : '<span class="sello reportado">Reportado · ' + n + (n === 1 ? ' vez' : ' veces') + '</span>';
+      const detalles = r.reportes.slice().reverse().map((rep) =>
+        `<div class="reporte"><div class="meta">Agregado por <b>${esc(rep.agregadoPor)}</b> · ${fmtFecha(rep.fecha)}</div>` +
+        `<span class="metodo">${esc(rep.metodo)}</span>${rep.descripcion ? esc(rep.descripcion) : "<i>Sin descripción</i>"}</div>`
+      ).join("");
+      return `<article class="ficha"><div class="ficha-cab"><span class="num">${esc(fmtNum(r.numero))}</span>${sello}</div>` +
+             `<details><summary>Ver ${n === 1 ? "el reporte" : "los " + n + " reportes"}</summary>${detalles}</details></article>`;
+    }).join("");
+  } catch (e) {
+    $("#estado").textContent = "No se pudo consultar el registro: " + e.message;
+  }
+}
+$("#btn-buscar").addEventListener("click", buscar);
+$("#q").addEventListener("keydown", (e) => { if (e.key === "Enter") buscar(); });
+
+/* AGREGAR */
+$("#form-reporte").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const aviso = $("#aviso");
+  aviso.className = ""; aviso.textContent = "";
+  const cuerpo = {
+    numero: $("#f-numero").value,
+    agregadoPor: $("#f-agregadoPor").value,
+    metodo: $("#f-metodo").value,
+    descripcion: $("#f-descripcion").value,
+  };
+  try {
+    const res = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cuerpo) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "No se pudo guardar");
+    aviso.className = "ok";
+    aviso.textContent = data.nuevo
+      ? "Número agregado al registro. Gracias por tu reporte."
+      : "Reporte sumado: este número ya acumula " + data.totalReportes + " reportes.";
+    e.target.reset();
+  } catch (err) {
+    aviso.className = "error";
+    aviso.textContent = err.message;
+  }
+});
+
+buscar(); // carga inicial
+</script>
+</body>
+</html>

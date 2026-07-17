@@ -1,0 +1,9 @@
+{
+  "name": "registro-numeros-dudosos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Registro comunitario de números telefónicos dudosos (Netlify + Netlify Blobs)",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
